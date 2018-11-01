@@ -140,6 +140,17 @@ class CommonLoggerTestsMixIn(object):
                      'info', 'debug', 'log'):
             self.assertRaises(AttributeError, getattr, log, func)
 
+    @mock.patch('platform.system', return_value='Linux')
+    def test_eventlog_if_platform_not_windows(self, platform_mock):
+        self.config(use_eventlog=True)
+        # log_root = log.getLogger(None).logger
+        log._setup_logging_from_conf(self.CONF, 'test', 'test')
+        self.assertRaises(RuntimeError,
+                          log._setup_logging_from_conf,
+                          self.CONF,
+                          'test',
+                          'test')
+
 
 class LoggerTestCase(CommonLoggerTestsMixIn, test_base.BaseTestCase):
     def setUp(self):
