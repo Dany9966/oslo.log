@@ -40,6 +40,7 @@ except ImportError:
 
 from oslo_config import cfg
 from oslo_utils import importutils
+from oslo_utils import units
 import six
 from six import moves
 
@@ -344,13 +345,28 @@ def _setup_logging_from_conf(conf, project, version):
 
     logpath = _get_log_file_path(conf)
     if logpath:
+        # On Windows, in-use files cannot be moved or deleted.
         if conf.watch_log_file and platform.system() == 'Linux':
             from oslo_log import watchers
             file_handler = watchers.FastWatchedFileHandler
+            filelog = file_handler(logpath)
+        # The rotating file handlers treat the backup count parameter
+        # differently. We're trying to get a consistent behavior.
+        elif conf.log_rotate_interval and conf.max_logfile_count:
+            file_handler = logging.handlers.TimedRotatingFileHandler
+            filelog = file_handler(logpath,
+                                   when=conf.log_rotate_interval_type,
+                                   interval=conf.log_rotate_interval,
+                                   backupCount=conf.max_logfile_count)
+        elif conf.max_logfile_size and conf.max_logfile_count:
+            file_handler = logging.handlers.RotatingFileHandler
+            filelog = file_handler(logpath,
+                                   maxBytes=conf.max_logfile_size * units.Mi,
+                                   backupCount=conf.max_logfile_count)
         else:
             file_handler = logging.handlers.WatchedFileHandler
+            filelog = file_handler(logpath)
 
-        filelog = file_handler(logpath)
         log_root.addHandler(filelog)
 
     if conf.use_stderr:

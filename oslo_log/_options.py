@@ -111,6 +111,24 @@ generic_log_opts = [
     cfg.BoolOpt('use_eventlog',
                 default=False,
                 help='Log output to Windows Event Log.'),
+    cfg.IntOpt('log_rotate_interval',
+               help='This option takes precedence over "max_logfile_size".'),
+    cfg.StrOpt('log_rotate_interval_type',
+               default='D',
+               choices=['S', 'M', 'H', 'D', 'W', 'midnight'],
+               ignore_case=True,
+               help='Rotation interval type: '
+                    'S - Seconds, '
+                    'M - Minutes, '
+                    'H - Hours, '
+                    'D - Days, '
+                    'W - Weekday (set log_rotate_interval to 0 for Monday), '
+                    'midnight - Roll over at midnight.'),
+    cfg.IntOpt('max_logfile_count',
+               help='Maximum number of rotated log files. If set to 0, '
+                    'the log file will not be rotated.'),
+    cfg.IntOpt('max_logfile_size',
+               help='Log file maximum size in MB.')
 ]
 
 log_opts = [
